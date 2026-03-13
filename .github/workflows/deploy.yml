@@ -1,0 +1,51 @@
+name: Deploy GitBook to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 如果您的默认分支是 `master`，请修改为此
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 关键修改：移除 `cache: 'npm'` 配置
+          node-version: '16.x'
+
+      - name: Install GitBook
+        run: |
+          # 清理可能的全局旧版本，避免冲突
+          npm uninstall -g gitbook gitbook-cli 2>/dev/null || true
+          # 安装指定且兼容的版本
+          npm install -g gitbook@3.2.3
+          gitbook --version
+
+      - name: Clean and Install Plugins
+        run: |
+          # 彻底清理旧的构建和可能出错的依赖
+          rm -rf _book
+          rm -rf node_modules
+          # 安装 GitBook 插件（基于 book.json）
+          gitbook install
+
+      - name: Build GitBook Site
+        run: gitbook build
+        # 可选：增加超时时间，如果书籍很大
+        # timeout-minutes: 5
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # GitBook 构建的输出目录
+          publish_dir: ./_book
+          # 部署到的目标分支
+          publish_branch: gh-pages
+          # 如果之前的 gh-pages 分支混乱，可以启用以下选项强制重置
+          # force_orphan: true
