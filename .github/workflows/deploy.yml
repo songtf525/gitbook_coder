@@ -51,4 +51,4 @@ jobs:
           # 部署到的目标分支
           publish_branch: gh-pages
           # 如果之前的 gh-pages 分支混乱，可以启用以下选项强制重置
-          # force_orphan: true
+          force_orphan: true
